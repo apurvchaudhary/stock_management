@@ -1,19 +1,17 @@
 """
 settings module
 """
-
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-
-from env_values import *
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = "django-insecure-1y8=a!@_7lhze8!ck)n$!v3y_y#od8j8m5^u#a5+spi6o@uy^x"
 
-DEBUG = DEBUG
+DEBUG = True if os.getenv("DEBUG", "false").lower() == "true" else False
 
 ALLOWED_HOSTS = []
 
@@ -24,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "stock_app",
 ]
 
 MIDDLEWARE = [
@@ -41,7 +40,7 @@ ROOT_URLCONF = "project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "static/templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -86,6 +85,41 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "edit_static"),
+]
+
+# caching ttl
+CACHE_TTL = int(os.getenv("CACHE_TTL", "1000"))
+
+# Base url to serve media files
+MEDIA_URL = "/media/"
+
+# Path where media is stored
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    "version": 1,
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "filters": ["require_debug_true"],
+            "class": "logging.StreamHandler",
+        }
+    },
+    "loggers": {
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        }
+    },
+}
