@@ -109,6 +109,7 @@ tr:nth-child(even) {
     </table>
     <br>
     <div class="pagination">
+        <a href="{% url 'stock-view' %}">&laquo;</a>
         {% for i in count %}
         {% if i == offset %}
         <a class="active" href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
@@ -116,6 +117,7 @@ tr:nth-child(even) {
         <a href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
         {% endif %}
         {% endfor %}
+        <a href="{% url 'stock-view' %}?offset={{ max_offset }}">&raquo;</a>
     </div>
 
     <!-- End page content -->
