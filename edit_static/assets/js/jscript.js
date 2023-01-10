@@ -1,8 +1,8 @@
-    function getRandomColor() {
+    function getRandomColor(color_count) {
         var letters = '0123456789ABCDEF'.split('');
         var color_array = [];
         var color = '#';
-        for (var j = 0; j < 10; j++){for (var i = 0; i < 6; i++ ) {
+        for (var j = 0; j < color_count; j++){for (var i = 0; i < 6; i++ ) {
             color += letters[Math.floor(Math.random() * 16)];
        }
        color_array.push(color);
@@ -22,7 +22,7 @@
               labels: data.labels,
               datasets: [{
                 label: 'Patient Count',
-                backgroundColor: getRandomColor(),
+                backgroundColor: getRandomColor(data.count),
                 data: data.data
               }]
             },

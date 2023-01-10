@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 from rest_framework import serializers
 
-from stock_app.models import Sell
+from stock_app.models import Sell, Stock
 
 
 class SellSerializer(serializers.ModelSerializer):
@@ -50,3 +50,21 @@ class GetSellSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         pass
+
+
+class StockSerializer(serializers.ModelSerializer):
+    """
+    serializer for Stock model
+    """
+
+    product = serializers.ReadOnlyField(source="product.name")
+    category = serializers.ReadOnlyField(source="product.category.name")
+    brand = serializers.ReadOnlyField(source="product.brand.name")
+
+    class Meta:
+        """
+        meta properties
+        """
+
+        model = Stock
+        fields = ("product", "category", "brand", "avg_buy_price", "quantity")

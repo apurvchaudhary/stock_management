@@ -5,8 +5,21 @@ from datetime import date
 
 from django.db.models import Sum
 
-from stock_app.models import Sell, Product
-from stock_app.serializers import SellSerializer
+from stock_app.models import Sell, Product, Stock
+from stock_app.serializers import SellSerializer, StockSerializer
+
+
+def get_stocks(offset=0, limit=None):
+    """
+    func to return stock data with given limit
+    :param offset: integer
+    :param limit: int
+    :return: dict
+    """
+    stocks = Stock.objects.select_related("product", "product__brand", "product__category").order_by("-updated_at")[
+        offset:limit
+    ]
+    return StockSerializer(stocks, many=True).data
 
 
 def get_sails(limit=None, _from=None, _to=None):
@@ -43,15 +56,16 @@ def get_month_sales_graph_data():
     """
     sales = (
         Sell.objects.filter(created_at__month=date.today().month)
-        .select_related("product")
-        .values("product__name")
+        .select_related("product", "product__brand__name")
+        .values("product__name", "product__brand__name")
         .annotate(quantity=Sum("quantity"))
         .order_by("-quantity")
     )
-    labels, data = [], []
+    labels, data, count = [], [], 0
     for sale in sales:
-        labels.append(sale["product__name"]), data.append(sale["quantity"])
-    return {"labels": labels, "data": data}
+        count += 1
+        labels.append(f"{sale['product__name']} of {sale['product__brand__name']}"), data.append(sale["quantity"])
+    return {"labels": labels, "data": data, "count": count}
 
 
 def get_least_and_most_selling_products():
