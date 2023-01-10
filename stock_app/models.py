@@ -28,6 +28,9 @@ class Category(TimeStampModel):
 
     objects = Manager()
 
+    def __str__(self):
+        return self.name
+
 
 class Brand(TimeStampModel):
     """
@@ -38,6 +41,9 @@ class Brand(TimeStampModel):
     description = models.TextField(null=True)
 
     objects = Manager()
+
+    def __str__(self):
+        return self.name
 
 
 class Product(TimeStampModel):
@@ -51,6 +57,9 @@ class Product(TimeStampModel):
     summary = models.TextField(null=True)
 
     objects = Manager()
+
+    def __str__(self):
+        return f"{self.name} - {self.brand.name}"
 
 
 class Stock(TimeStampModel):

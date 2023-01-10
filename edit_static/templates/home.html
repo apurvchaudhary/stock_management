@@ -33,6 +33,7 @@ tr:nth-child(even) {
 
 
 
+
     </style>
 </head>
 <body>
@@ -130,8 +131,8 @@ tr:nth-child(even) {
         <div class="w3-half w3-margin-bottom">
             <ul class="w3-ul w3-light-grey w3-center">
                 <li class="w3-dark-grey w3-xlarge w3-padding-32">Least</li>
-                {% for name in least_sales %}
-                <li class="w3-padding-16">{{ name }}</li>
+                {% for sale in least_sales %}
+                <li class="w3-padding-16">{{ sale.quantity }} {{ sale.name }} of {{ sale.brand }} sold till date</li>
                 {% endfor %}
             </ul>
         </div>
@@ -139,8 +140,8 @@ tr:nth-child(even) {
         <div class="w3-half">
             <ul class="w3-ul w3-light-grey w3-center">
                 <li class="w3-red w3-xlarge w3-padding-32">Pro</li>
-                {% for name in most_sales %}
-                <li class="w3-padding-16">{{ name }}</li>
+                {% for sale in most_sales %}
+                <li class="w3-padding-16">{{ sale.quantity }} {{ sale.name }} of {{ sale.brand }} sold till date</li>
                 {% endfor %}
             </ul>
         </div>
@@ -173,6 +174,7 @@ function onClick(element) {
   var captionText = document.getElementById("caption");
   captionText.innerHTML = element.alt;
 }
+
 
 
 

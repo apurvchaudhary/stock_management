@@ -3,7 +3,7 @@ utility module
 """
 from datetime import date
 
-from django.db.models import Sum, Q
+from django.db.models import Sum
 
 from stock_app.models import Sell, Product
 from stock_app.serializers import SellSerializer
@@ -46,6 +46,7 @@ def get_month_sales_graph_data():
         .select_related("product")
         .values("product__name")
         .annotate(quantity=Sum("quantity"))
+        .order_by("-quantity")
     )
     labels, data = [], []
     for sale in sales:
@@ -59,19 +60,21 @@ def get_least_and_most_selling_products():
     :return:
     """
     most = [
-        product["name"]
+        {"name": product["name"], "quantity": product["quantity"], "brand": product["brand__name"]}
         for product in Product.objects.prefetch_related("sell_set")
-        .values("name")
+        .select_related("brand")
+        .values("name", "brand__name")
         .annotate(quantity=Sum("sell__quantity"))
         .order_by("-quantity")[:10]
         if product["quantity"] is not None
     ]
+    most_sold = [product["name"] for product in most]
     least = [
-        name
-        for name in Product.objects.values_list("name", flat=True)
-        .prefetch_related("sell_set")
+        {"name": product["name"], "quantity": product["quantity"], "brand": product["brand__name"]}
+        for product in Product.objects.prefetch_related("sell_set")
+        .values("name", "brand__name")
         .annotate(quantity=Sum("sell__quantity"))
         .order_by("quantity")[:10]
-        if name not in most
+        if product["name"] not in most_sold
     ]
     return most, least
