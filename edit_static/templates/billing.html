@@ -30,6 +30,23 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+}
+
+.pagination a.active {
+  background-color: #f44336;
+  color: white;
+}
+
+.pagination a:hover:not(.active) {background-color: #ddd;}
+
+
     </style>
 </head>
 <body>
@@ -44,8 +61,7 @@ tr:nth-child(even) {
     </div>
     <div class="w3-bar-block">
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Home</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Recent
-            Sales</a>
+        <a class="w3-bar-item w3-button w3-hover-white" href="#showcase" onclick="w3_close()">Recent Sales</a>
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'sales-view' %}" onclick="w3_close()">All Sales</a>
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'stock-view' %}" onclick="w3_close()">In-Stock</a>
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'billing-view' %}" onclick="w3_close()">Billing</a>
@@ -67,54 +83,44 @@ tr:nth-child(even) {
 
     <!-- Header -->
     <div class="w3-container" id="showcase" style="margin-top:80px">
-        <h1 class="w3-jumbo"><b>Sales</b></h1>
-        <form action="{% url 'sales-view' %}" method="get">{% csrf_token %}
-            <label for="_from">From:</label>
-            <input id="_from" name="_from" required type="date">
-            <label for="_to">To:</label>
-            <input id="_to" name="_to" required type="date">
-            <label for="limit">Count:</label>
-            <input id="limit" name="limit" type="text">
-            <input type="submit">
-        </form>
-        <h1 class="w3-xxxlarge w3-text-red"><b>Filtered Sales</b></h1>
-        <h4>From <span class="w3-text-red">{{ from }}</span> to <span class="w3-text-red">{{ to }}</span></h4>
+        <h1 class="w3-jumbo"><b>Stock Information</b></h1>
+        <h1 class="w3-xxxlarge w3-text-red"><b>All Stock Data</b></h1>
         <hr class="w3-round" style="width:50px;border:5px solid red">
     </div>
 
     <table>
         <tr>
-            <th>Product</th>
+            <th>Product Name</th>
             <th>Category</th>
             <th>Brand</th>
-            <th>Price</th>
-            <th>Quantity</th>
+            <th>Average Buy Price</th>
+            <th>Quantity in Stock</th>
         </tr>
-        {% for sale in recent_sale %}
+        {% for stock in stocks %}
         <tr>
-            <td>{{ sale.product }}</td>
-            <td>{{ sale.category }}</td>
-            <td>{{ sale.brand }}</td>
-            <td>{{ sale.price }}</td>
-            <td>{{ sale.quantity }}</td>
+            <td>{{ stock.product }}</td>
+            <td>{{ stock.category }}</td>
+            <td>{{ stock.brand }}</td>
+            <td>{{ stock.avg_buy_price }}</td>
+            <td>{{ stock.quantity }}</td>
         </tr>
         {% endfor %}
     </table>
-
-    <!-- Modal for full size images on click-->
-    <div class="w3-modal w3-black" id="modal01" onclick="this.style.display='none'" style="padding-top:0">
-        <span class="w3-button w3-black w3-xxlarge w3-display-topright">×</span>
-        <div class="w3-modal-content w3-animate-zoom w3-center w3-transparent w3-padding-64">
-            <img class="w3-image" id="img01">
-            <p id="caption"></p>
-        </div>
+    <br>
+    <div class="pagination">
+        <a href="{% url 'stock-view' %}">&laquo;</a>
+        {% for i in count %}
+        {% if i == offset %}
+        <a class="active" href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
+        {% else %}
+        <a href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
+        {% endif %}
+        {% endfor %}
+        <a href="{% url 'stock-view' %}?offset={{ max_offset }}">&raquo;</a>
     </div>
 
     <!-- End page content -->
 </div>
-
-<!--&lt;!&ndash; W3.CSS Container &ndash;&gt;-->
-<!--<div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px"><p class="w3-right">Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-opacity">w3.css</a></p></div>-->
 
 <script>
 // Script to open and close sidebar
@@ -135,10 +141,6 @@ function onClick(element) {
   var captionText = document.getElementById("caption");
   captionText.innerHTML = element.alt;
 }
-
-
-
-
 
 </script>
 

@@ -64,8 +64,7 @@ tr:nth-child(even) {
         <a class="w3-bar-item w3-button w3-hover-white" href="#showcase" onclick="w3_close()">Recent Sales</a>
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'sales-view' %}" onclick="w3_close()">All Sales</a>
         <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'stock-view' %}" onclick="w3_close()">In-Stock</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="#packages" onclick="w3_close()">Brands</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="#contact" onclick="w3_close()">Contact</a>
+        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'billing-view' %}" onclick="w3_close()">Billing</a>
     </div>
 </nav>
 
