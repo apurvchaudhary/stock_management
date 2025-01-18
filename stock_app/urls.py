@@ -1,6 +1,7 @@
 """
 url patterns
 """
+
 from django.urls import path
 
 from stock_app.views import home_view, sales_view, sales_graph, stock_view, Billing

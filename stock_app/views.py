@@ -1,6 +1,7 @@
 """
 views
 """
+
 from math import ceil
 from rest_framework.response import Response
 from django.conf import settings
@@ -91,6 +92,7 @@ class Billing(APIView):
     """
     class to handle billing
     """
+
     @staticmethod
     def get(request):
         """

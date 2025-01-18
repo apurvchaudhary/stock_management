@@ -1,6 +1,7 @@
 """
 utility module
 """
+
 from datetime import date
 
 from django.db.models import Sum
@@ -34,9 +35,11 @@ def get_sails(limit=None, _from=None, _to=None):
             .order_by("-created_at")[:limit]
         )
     else:
-        sell = Sell.objects.filter().select_related("product", "product__category", "product__brand").order_by("-created_at")[
-            :limit
-        ]
+        sell = (
+            Sell.objects.filter()
+            .select_related("product", "product__category", "product__brand")
+            .order_by("-created_at")[:limit]
+        )
     return SellSerializer(sell, many=True).data
 
 

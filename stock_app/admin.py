@@ -19,13 +19,13 @@ class AdminCategory(admin.ModelAdmin):
     list_display = ("name", "description")
 
 
-class AdminBrand(admin.ModelAdmin):
+class AdminSupplier(admin.ModelAdmin):
     """
     django admin lookup
     """
 
-    model = Brand
-    list_display = ("name", "description")
+    model = Supplier
+    list_display = ("name", "email", "phone", "address")
 
 
 class AdminProduct(admin.ModelAdmin):
@@ -34,16 +34,30 @@ class AdminProduct(admin.ModelAdmin):
     """
 
     model = Product
-    list_display = ("name", "get_brand_name", "get_category_name", "get_quantity_count", "summary", "get_buy_price")
+    list_display = (
+        "name",
+        "get_category_name",
+        "get_quantity_count",
+        "get_buy_price",
+        "get_supplier_name",
+        "description",
+    )
+    list_per_page = 10
 
-    @admin.display(ordering="-created_at", description="brand")
-    def get_brand_name(self, obj):
+    def get_queryset(self, request):
         """
-        method to get brand name
+        fetching category and supplier by JOIN
+        """
+        return Product.objects.select_related("category", "supplier")
+
+    @admin.display(description="supplier")
+    def get_supplier_name(self, obj):
+        """
+        method to get supplier name
         :param obj: product
         :return: str
         """
-        return obj.brand.name
+        return obj.supplier.name
 
     @admin.display(description="category")
     def get_category_name(self, obj):
@@ -61,151 +75,51 @@ class AdminProduct(admin.ModelAdmin):
         :param obj: product
         :return: str
         """
-        try:
-            stock = Stock.objects.get(product=obj)
-            return stock.quantity
-        except ObjectDoesNotExist:
-            return "0 or Not Added to Stock"
+        return obj.stock_quantity
 
     @admin.display(description="Buy price")
     def get_buy_price(self, obj):
-        try:
-            stock = Stock.objects.get(product=obj)
-            return stock.avg_buy_price
-        except ObjectDoesNotExist:
-            return "Not Added to Stock"
+        return obj.price
 
 
-class AdminStock(admin.ModelAdmin):
-    model = Stock
-    list_display = ("get_product_name", "get_brand_name", "get_quantity", "avg_buy_price")
-
-    @admin.display(ordering="-created_at", description="Product Name")
-    def get_product_name(self, obj):
-        """
-        method to get stock's product name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.name
-
-    @admin.display(description="brand Name")
-    def get_brand_name(self, obj):
-        """
-        method to get stock's brand name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.brand.name
-
-    @admin.display(description="quantity in stock")
-    def get_quantity(self, obj):
-        """
-        method to get stock's product quantity
-        :param obj: stock
-        :return: str
-        """
-        return obj.quantity
+class AdminStockMovement(admin.ModelAdmin):
+    list_display = ("product", "quantity", "movement_type", "movement_date")
 
 
-class AdminPurchase(admin.ModelAdmin):
-    model = Purchase
-    list_display = (
-        "get_product_name",
-        "get_brand_name",
-        "price",
-        "quantity",
-        "margin_percentage",
-        "get_quantity_in_stock",
-    )
+class AdminSaleOrder(admin.ModelAdmin):
+    list_display = ("product", "quantity", "status", "total_price", "sale_date")
 
-    @admin.display(ordering="-created_at", description="Product Name")
-    def get_product_name(self, obj):
-        """
-        method to get stock's product name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.name
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["total_price"].disabled = True
+        form.base_fields["total_price"].help_text = "Will be updated automatically."
+        if obj and obj.status == "Pending":
+            form.base_fields["status"].choices = SaleOrder.STATUS_CHOICES
+        elif obj and obj.status != "Pending":
+            for field_name in form.base_fields:
+                form.base_fields[field_name].disabled = True
+        else:
+            form.base_fields["status"].disabled = True
+        return form
 
-    @admin.display(description="brand Name")
-    def get_brand_name(self, obj):
-        """
-        method to get stock's brand name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.brand.name
-
-    @admin.display(description="quantity in stock now")
-    def get_quantity_in_stock(self, obj):
-        """
-        method to get quantity left in Stock
-        :param obj: stock
-        :return: int
-        """
-        try:
-            stock = Stock.objects.get(product=obj.product)
-            return stock.quantity
-        except ObjectDoesNotExist:
-            return "0 or Not Added to Stock"
-
-
-class AdminSale(admin.ModelAdmin):
-    model = Sell
-    list_display = (
-        "get_product_name",
-        "get_brand_name",
-        "price",
-        "get_quantity_sold",
-        "profit",
-        "get_quantity_in_stock",
-    )
-
-    @admin.display(ordering="-created_at", description="Product Name")
-    def get_product_name(self, obj):
-        """
-        method to get stock's product name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.name
-
-    @admin.display(description="brand Name")
-    def get_brand_name(self, obj):
-        """
-        method to get stock's brand name
-        :param obj: stock
-        :return: str
-        """
-        return obj.product.brand.name
-
-    @admin.display(description="quantity sold")
-    def get_quantity_sold(self, obj):
-        """
-        method to get quantity sold in this order
-        :param obj: stock
-        :return: int
-        """
-        return obj.quantity
-
-    @admin.display(description="quantity in stock now")
-    def get_quantity_in_stock(self, obj):
-        """
-        method to get quantity left in Stock
-        :param obj: stock
-        :return: int
-        """
-        try:
-            stock = Stock.objects.get(product=obj.product)
-            return stock.quantity
-        except ObjectDoesNotExist:
-            return "0 or Not Added to Stock"
+    def save_model(self, request, obj, form, change):
+        obj.total_price = obj.product.price * obj.quantity
+        if obj.pk:
+            previous_status = SaleOrder.objects.get(pk=obj.pk).status
+            if previous_status == "Pending" and obj.status == "Completed":
+                if obj.product.stock_quantity < obj.quantity:
+                    form.add_error(
+                        "quantity",
+                        f"Not enough stock for {obj.product.name}. Current stock: {obj.product.stock_quantity}.",
+                    )
+                    return
+                obj.product.stock_quantity -= obj.quantity
+                obj.product.save()
+        obj.save()
 
 
 admin.site.register(Category, AdminCategory)
-admin.site.register(Brand, AdminBrand)
+admin.site.register(Supplier, AdminSupplier)
 admin.site.register(Product, AdminProduct)
-admin.site.register(Stock, AdminStock)
-admin.site.register(Purchase, AdminPurchase)
-admin.site.register(Sell, AdminSale)
+admin.site.register(StockMovement, AdminStockMovement)
+admin.site.register(SaleOrder, AdminSaleOrder)
