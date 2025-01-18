@@ -2,10 +2,14 @@
 models
 """
 
+from django.core.validators import (
+    MinValueValidator,
+    RegexValidator,
+    EmailValidator,
+)
 from django.db import models, transaction
 from django.db.models.manager import Manager
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import MinValueValidator, RegexValidator, EmailValidator
+
 from stock_app.validators import check_product_stock_quantity
 
 
@@ -89,7 +93,7 @@ class SaleOrder(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    sale_date = models.DateField(auto_now_add=True)
+    sale_date = models.DateTimeField(auto_now_add=True, editable=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
 
     objects = Manager()
@@ -111,7 +115,7 @@ class StockMovement(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     movement_type = models.CharField(max_length=3, choices=MOVEMENT_TYPE_CHOICES)
-    movement_date = models.DateField(auto_now_add=True)
+    movement_date = models.DateTimeField(auto_now_add=True, editable=False)
     notes = models.TextField(blank=True, null=True)
 
     objects = Manager()
@@ -141,60 +145,3 @@ class StockMovement(models.Model):
 
             self.product.save()
             super().save(*args, **kwargs)
-
-
-class Stock(TimeStampModel):
-    """
-    model to save stock
-    """
-
-    product = models.OneToOneField(Product, on_delete=models.RESTRICT)
-    quantity = models.IntegerField()
-    avg_buy_price = models.DecimalField(null=True, max_digits=100, decimal_places=2)
-
-    objects = Manager()
-
-
-class Purchase(TimeStampModel):
-    """
-    model to save purchase orders
-    """
-
-    product = models.ForeignKey(Product, on_delete=models.RESTRICT)
-    price = models.DecimalField(max_digits=100, decimal_places=2)
-    quantity = models.IntegerField()
-    margin_percentage = models.DecimalField(null=True, max_digits=100, decimal_places=2)
-
-    objects = Manager()
-
-    def save(self, *args, **kwargs):
-        try:
-            stock = Stock.objects.get(product=self.product)
-            stock.avg_buy_price = (stock.avg_buy_price * stock.quantity + self.price * self.quantity) / (
-                stock.quantity + self.quantity
-            )
-            stock.quantity += self.quantity
-            stock.save()
-        except ObjectDoesNotExist:
-            Stock.objects.create(product=self.product, quantity=self.quantity, avg_buy_price=self.price)
-        super().save(*args, **kwargs)
-
-
-class Sell(TimeStampModel):
-    """
-    model to save sell data
-    """
-
-    product = models.ForeignKey(Product, on_delete=models.RESTRICT)
-    price = models.DecimalField(max_digits=100, decimal_places=2)
-    quantity = models.IntegerField()
-    profit = models.DecimalField(null=True, max_digits=100, decimal_places=2)
-
-    objects = Manager()
-
-    def save(self, *args, **kwargs):
-        stock = Stock.objects.get(product=self.product)
-        stock.quantity -= self.quantity
-        stock.save()
-        self.profit = self.price * self.quantity - stock.avg_buy_price * self.quantity
-        super().save(*args, **kwargs)

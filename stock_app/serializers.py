@@ -2,20 +2,31 @@
 serializers
 """
 
-from datetime import date, timedelta
+from datetime import datetime
+from django.utils import timezone
 
 from rest_framework import serializers
 
-from stock_app.models import Sell, Stock
+from stock_app.models import SaleOrder
 
 
-class SellSerializer(serializers.ModelSerializer):
+def default_from():
+    today = timezone.now().date()
+    return timezone.make_aware(datetime.combine(today, datetime.min.time()))
+
+
+def default_to():
+    today = timezone.now().date()
+    return timezone.make_aware(datetime.combine(today, datetime.max.time()))
+
+
+class SaleOrderSerializer(serializers.ModelSerializer):
     """
     serializer class for sale Model
     """
 
     product = serializers.ReadOnlyField(source="product.name")
-    brand = serializers.ReadOnlyField(source="product.brand.name")
+    supplier = serializers.ReadOnlyField(source="product.supplier.name")
     category = serializers.ReadOnlyField(source="product.category.name")
     date = serializers.SerializerMethodField()
 
@@ -24,8 +35,15 @@ class SellSerializer(serializers.ModelSerializer):
         meta properties
         """
 
-        model = Sell
-        fields = ("product", "price", "quantity", "brand", "category", "date")
+        model = SaleOrder
+        fields = (
+            "product",
+            "total_price",
+            "quantity",
+            "supplier",
+            "category",
+            "date",
+        )
 
     @staticmethod
     def get_date(obj):
@@ -34,38 +52,14 @@ class SellSerializer(serializers.ModelSerializer):
         :param obj:
         :return: str
         """
-        return obj.created_at.strftime("%d-%m-%Y/%H:%M")
+        return timezone.localtime(obj.sale_date).strftime("%d-%m-%Y at %H:%M")
 
 
-class GetSellSerializer(serializers.Serializer):
+class SaleOrderRangeSerializer(serializers.Serializer):
     """
-    serializer for query params for sales-views
+    Serializer for query params for sales-views.
+    Provides default values for `_from` and `_to` as the start and end of the current day.
     """
-
-    _from = serializers.CharField(max_length=10, default=date.today().strftime("%Y-%m-%d"))
-    _to = serializers.CharField(max_length=10, default=(date.today() + timedelta(days=1)).strftime("%Y-%m-%d"))
+    _from = serializers.DateTimeField(default=default_from)
+    _to = serializers.DateTimeField(default=default_to)
     limit = serializers.IntegerField(required=False, default=None)
-
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-
-class StockSerializer(serializers.ModelSerializer):
-    """
-    serializer for Stock model
-    """
-
-    product = serializers.ReadOnlyField(source="product.name")
-    category = serializers.ReadOnlyField(source="product.category.name")
-    brand = serializers.ReadOnlyField(source="product.brand.name")
-
-    class Meta:
-        """
-        meta properties
-        """
-
-        model = Stock
-        fields = ("product", "category", "brand", "avg_buy_price", "quantity")
