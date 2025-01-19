@@ -72,7 +72,7 @@ class SaleOrderRangeSerializer(serializers.Serializer):
 class ProductFilterSerializer(serializers.Serializer):
     category = serializers.IntegerField(required=False)
     price_operator = serializers.ChoiceField(choices=["=", ">", "<"], required=False)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=Decimal("0.01"))
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=Decimal("1.0"))
 
     def to_filter_kwargs(self):
         """
