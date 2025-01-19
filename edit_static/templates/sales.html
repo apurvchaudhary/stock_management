@@ -1,74 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 {% load static %}
-<head>
-    <title>Stock Management</title>
-    <link href="{% static 'assets/images/logo.png' %}" rel="icon" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
-    <style>
-body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
-body {font-size:16px;}
-.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
-.w3-half img:hover{opacity:1}
-
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
-}
-
-    </style>
-</head>
-<body>
-
-<!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" id="mySidebar"
-     style="z-index:3;width:300px;font-weight:bold;"><br>
-    <a class="w3-button w3-hide-large w3-display-topleft" href="javascript:void(0)" onclick="w3_close()"
-       style="width:100%;font-size:22px">Close Menu</a>
-    <div class="w3-container">
-        <h3 class="w3-padding-64"><b>Stock<br>Management</b></h3>
-    </div>
-    <div class="w3-bar-block">
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Home</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Recent
-            Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'sales-view' %}" onclick="w3_close()">All Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'stock-view' %}" onclick="w3_close()">In-Stock</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'billing-view' %}" onclick="w3_close()">Billing</a>
-    </div>
-</nav>
-
-<!-- Top menu on small screens -->
-<header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
-    <a class="w3-button w3-red w3-margin-right" href="javascript:void(0)" onclick="w3_open()">☰</a>
-    <span>Company Name</span>
-</header>
-
-<!-- Overlay effect when opening sidebar on small screens -->
-<div class="w3-overlay w3-hide-large" id="myOverlay" onclick="w3_close()" style="cursor:pointer"
-     title="close side menu"></div>
-
-<!-- !PAGE CONTENT! -->
-<div class="w3-main" style="margin-left:340px;margin-right:40px">
+{% block content %}
+<div class="w3-main" style="margin-left:340px;margin-right:40px;min-height: 70vh;">
 
     <!-- Header -->
     <div class="w3-container" id="showcase" style="margin-top:80px">
         <h1 class="w3-jumbo"><b>Sales</b></h1>
-        <form action="{% url 'sales-view' %}" method="get">{% csrf_token %}
+        <form id="sales-form">
+            {% csrf_token %}
             <label for="_from">From:</label>
             <input id="_from" name="_from" required type="date">
             <label for="_to">To:</label>
@@ -78,27 +17,20 @@ tr:nth-child(even) {
             <input type="submit">
         </form>
         <h1 class="w3-xxxlarge w3-text-red"><b>Filtered Sales</b></h1>
-        <h4>From <span class="w3-text-red">{{ from }}</span> to <span class="w3-text-red">{{ to }}</span></h4>
+        <h4>From <span class="w3-text-red" id="from-date"></span> to <span class="w3-text-red" id="to-date"></span></h4>
         <hr class="w3-round" style="width:50px;border:5px solid red">
     </div>
 
-    <table>
+    <table id="sales-table">
         <tr>
             <th>Product</th>
             <th>Category</th>
-            <th>Brand</th>
+            <th>Supplier</th>
             <th>Price</th>
             <th>Quantity</th>
+            <th>Date</th>
         </tr>
-        {% for sale in recent_sale %}
-        <tr>
-            <td>{{ sale.product }}</td>
-            <td>{{ sale.category }}</td>
-            <td>{{ sale.brand }}</td>
-            <td>{{ sale.price }}</td>
-            <td>{{ sale.quantity }}</td>
-        </tr>
-        {% endfor %}
+        <!-- Sales data will be populated here -->
     </table>
 
     <!-- Modal for full size images on click-->
@@ -109,38 +41,63 @@ tr:nth-child(even) {
             <p id="caption"></p>
         </div>
     </div>
-
-    <!-- End page content -->
 </div>
 
-<!--&lt;!&ndash; W3.CSS Container &ndash;&gt;-->
-<!--<div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px"><p class="w3-right">Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-opacity">w3.css</a></p></div>-->
-
 <script>
-// Script to open and close sidebar
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("myOverlay").style.display = "block";
-}
+    // Function to fetch sales data and update the table
+    function fetchSalesData() {
+        var _from = document.getElementById('_from').value;
+        var _to = document.getElementById('_to').value;
+        var limit = document.getElementById('limit').value;
 
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("myOverlay").style.display = "none";
-}
+        // Update the displayed dates
+        document.getElementById('from-date').textContent = _from;
+        document.getElementById('to-date').textContent = _to;
 
-// Modal Image Gallery
-function onClick(element) {
-  document.getElementById("img01").src = element.src;
-  document.getElementById("modal01").style.display = "block";
-  var captionText = document.getElementById("caption");
-  captionText.innerHTML = element.alt;
-}
+        // Construct the query string
+        var queryString = `?_from=${_from}&_to=${_to}&limit=${limit}`;
 
+        // Send AJAX request to fetch sales data
+        fetch(`/sales-by-range${queryString}`)
+            .then(response => response.json())
+            .then(data => {
+                // Clear the existing table rows
+                var table = document.getElementById('sales-table');
+                table.innerHTML = `
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Supplier</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                    </tr>
+                `;
 
+                // Populate the table with the fetched
+                data.forEach(sale => {
+                    var row = table.insertRow();
+                    row.innerHTML = `
+                        <td>${sale.product}</td>
+                        <td>${sale.category}</td>
+                        <td>${sale.supplier}</td>
+                        <td>${sale.total_price}</td>
+                        <td>${sale.quantity}</td>
+                        <td>${sale.date}</td>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error fetching sales data:', error));
+    }
 
+    // Add event listener to the form
+    document.getElementById('sales-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent the form from submitting normally
+        fetchSalesData(); // Fetch the data using AJAX
+    });
 
-
+    // Fetch the initial sales data when the page loads
+    window.onload = fetchSalesData;
 </script>
 
-</body>
-</html>
+{% endblock %}

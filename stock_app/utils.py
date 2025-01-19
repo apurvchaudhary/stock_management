@@ -6,8 +6,8 @@ from datetime import date
 
 from django.db.models import Sum
 
-from stock_app.models import SaleOrder
-from stock_app.serializers import SaleOrderSerializer
+from stock_app.models import SaleOrder, Product
+from stock_app.serializers import SaleOrderSerializer, ProductSerializer
 
 
 def get_sales(limit=None, _from=None, _to=None):
@@ -17,7 +17,7 @@ def get_sales(limit=None, _from=None, _to=None):
     """
     query = SaleOrder.objects.select_related("product", "product__category", "product__supplier").order_by("-sale_date")
     if _from and _to:
-        query.filter(sale_date__range=[_from, _to])
+        query = query.filter(sale_date__range=[_from, _to])
     return SaleOrderSerializer(query[:limit], many=True).data
 
 
@@ -70,3 +70,12 @@ def get_least_and_most_selling_products():
     )
     least_selling = [product for product in least_selling if product not in most_selling]
     return most_selling, least_selling
+
+
+def get_products(filters):
+    products = Product.objects.select_related("category", "supplier").filter(**filters)
+    return ProductSerializer(products, many=True).data
+
+
+def get_categories():
+    return Product.objects.select_related("category").values("category_id", "category__name")

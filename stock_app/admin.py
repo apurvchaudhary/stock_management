@@ -17,6 +17,7 @@ class AdminCategory(admin.ModelAdmin):
 
     model = Category
     list_display = ("name", "description")
+    search_fields = ("name",)
 
 
 class AdminSupplier(admin.ModelAdmin):
@@ -26,6 +27,7 @@ class AdminSupplier(admin.ModelAdmin):
 
     model = Supplier
     list_display = ("name", "email", "phone", "address")
+    search_fields = ("name", "email", "phone")
 
 
 class AdminProduct(admin.ModelAdmin):
@@ -43,6 +45,8 @@ class AdminProduct(admin.ModelAdmin):
         "description",
     )
     list_per_page = 10
+    search_fields = ("name",)
+    list_filter = ("category__name",)
 
     def get_queryset(self, request):
         """
@@ -83,11 +87,23 @@ class AdminProduct(admin.ModelAdmin):
 
 
 class AdminStockMovement(admin.ModelAdmin):
+    list_per_page = 10
     list_display = ("product", "quantity", "movement_type", "movement_date")
+    search_fields = ("product__name",)
+    list_filter = ("movement_type", "movement_date")
+
+    def get_actions(self, request):
+        return {}
 
 
 class AdminSaleOrder(admin.ModelAdmin):
+    list_per_page = 10
     list_display = ("product", "quantity", "status", "total_price", "sale_date")
+    search_fields = ("product__name",)
+    list_filter = ("status", "sale_date")
+
+    def get_actions(self, request):
+        return {}
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)

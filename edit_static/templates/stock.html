@@ -1,154 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 {% load static %}
-<head>
-    <title>Stock Management</title>
-    <link href="{% static 'assets/images/logo.png' %}" rel="icon" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
-    <style>
-body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
-body {font-size:16px;}
-.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
-.w3-half img:hover{opacity:1}
-
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
-}
-
-
-.pagination a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-  transition: background-color .3s;
-}
-
-.pagination a.active {
-  background-color: #f44336;
-  color: white;
-}
-
-.pagination a:hover:not(.active) {background-color: #ddd;}
-
-
-    </style>
-</head>
-<body>
-
-<!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" id="mySidebar"
-     style="z-index:3;width:300px;font-weight:bold;"><br>
-    <a class="w3-button w3-hide-large w3-display-topleft" href="javascript:void(0)" onclick="w3_close()"
-       style="width:100%;font-size:22px">Close Menu</a>
-    <div class="w3-container">
-        <h3 class="w3-padding-64"><b>Stock<br>Management</b></h3>
-    </div>
-    <div class="w3-bar-block">
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Home</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="#showcase" onclick="w3_close()">Recent Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'sales-view' %}" onclick="w3_close()">All Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'stock-view' %}" onclick="w3_close()">In-Stock</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'billing-view' %}" onclick="w3_close()">Billing</a>
-    </div>
-</nav>
-
-<!-- Top menu on small screens -->
-<header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
-    <a class="w3-button w3-red w3-margin-right" href="javascript:void(0)" onclick="w3_open()">☰</a>
-    <span>Company Name</span>
-</header>
-
-<!-- Overlay effect when opening sidebar on small screens -->
-<div class="w3-overlay w3-hide-large" id="myOverlay" onclick="w3_close()" style="cursor:pointer"
-     title="close side menu"></div>
-
-<!-- !PAGE CONTENT! -->
-<div class="w3-main" style="margin-left:340px;margin-right:40px">
+{% block content %}
+<div class="w3-main" style="margin-left:340px;margin-right:40px;min-height: 70vh;">
 
     <!-- Header -->
     <div class="w3-container" id="showcase" style="margin-top:80px">
-        <h1 class="w3-jumbo"><b>Stock Information</b></h1>
-        <h1 class="w3-xxxlarge w3-text-red"><b>All Stock Data</b></h1>
+        <h1 class="w3-jumbo"><b>Products</b></h1>
+        <form id="product-filter-form">
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <!-- Categories will be populated here dynamically -->
+            </select>
+            <label for="price-operator">Price Operator:</label>
+            <select id="price-operator" name="price_operator">
+                <option value="=">Equal</option>
+                <option value=">">Greater than</option>
+                <option value="<">Less than</option>
+            </select>
+            <label for="price-value">Price Value:</label>
+            <input id="price-value" name="price_value" step="0.01" type="number">
+
+            <button type="submit">Apply Filter</button>
+        </form>
+        <h1 class="w3-xxxlarge w3-text-red"><b>Filtered Products</b></h1>
         <hr class="w3-round" style="width:50px;border:5px solid red">
     </div>
 
-    <table>
+    <table id="sales-table">
         <tr>
-            <th>Product Name</th>
+            <th>Product</th>
             <th>Category</th>
-            <th>Brand</th>
-            <th>Average Buy Price</th>
+            <th>Supplier</th>
+            <th>Price</th>
             <th>Quantity in Stock</th>
         </tr>
-        {% for stock in stocks %}
-        <tr>
-            <td>{{ stock.product }}</td>
-            <td>{{ stock.category }}</td>
-            <td>{{ stock.brand }}</td>
-            <td>{{ stock.avg_buy_price }}</td>
-            <td>{{ stock.quantity }}</td>
-        </tr>
-        {% endfor %}
+        <!-- Sales data will be populated here -->
     </table>
-    <br>
-    <div class="pagination">
-        <a href="{% url 'stock-view' %}">&laquo;</a>
-        {% for i in count %}
-        {% if i == offset %}
-        <a class="active" href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
-        {% else %}
-        <a href="{% url 'stock-view' %}?offset={{ i }}">{{ i }}</a>
-        {% endif %}
-        {% endfor %}
-        <a href="{% url 'stock-view' %}?offset={{ max_offset }}">&raquo;</a>
-    </div>
 
-    <!-- End page content -->
+    <!-- Modal for full size images on click-->
+    <div class="w3-modal w3-black" id="modal01" onclick="this.style.display='none'" style="padding-top:0">
+        <span class="w3-button w3-black w3-xxlarge w3-display-topright">×</span>
+        <div class="w3-modal-content w3-animate-zoom w3-center w3-transparent w3-padding-64">
+            <img class="w3-image" id="img01">
+            <p id="caption"></p>
+        </div>
+    </div>
 </div>
 
 <script>
-// Script to open and close sidebar
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("myOverlay").style.display = "block";
-}
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fetch categories for filter dropdown
+        fetchCategories();
+        // Fetch products when the page loads
+        fetchProducts();
 
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("myOverlay").style.display = "none";
-}
+        // Add event listener to filter form submission
+        document.getElementById('product-filter-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            fetchProducts();
+        });
+    });
 
-// Modal Image Gallery
-function onClick(element) {
-  document.getElementById("img01").src = element.src;
-  document.getElementById("modal01").style.display = "block";
-  var captionText = document.getElementById("caption");
-  captionText.innerHTML = element.alt;
-}
+    function fetchProducts() {
+    // Get filter values
+    const categoryElement = document.getElementById('category');
+    const priceOperatorElement = document.getElementById('price-operator');
+    const priceElement = document.getElementById('price-value');
 
+    const category = categoryElement ? categoryElement.value : '';
+    const priceOperator = priceOperatorElement ? priceOperatorElement.value : '';
+    const price = priceElement ? priceElement.value : '';
 
+    // Build the query string
+    let queryParams = `?limit=10`;
+    if (category) queryParams += `&category=${category}`;
+    if (price && priceOperator) queryParams += `&price=${price}&price_operator=${priceOperator}`;
 
+    // Fetch products from the API
+    fetch(`/products${queryParams}`)
+        .then(response => response.json())
+        .then(data => {
+            // Clear the table before inserting new data
+            const table = document.getElementById('sales-table');
+            const rows = table.getElementsByTagName('tr');
+            // Remove all rows except the header
+            for (let i = rows.length - 1; i > 0; i--) {
+                rows[i].remove();
+            }
 
+            // Populate the table
+            if (data.length > 0) {
+                data.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.category}</td>
+                        <td>${product.supplier_name}</td>
+                        <td>${product.price}</td>
+                        <td>${product.stock_quantity}</td>
+                    `;
+                    table.appendChild(row);
+                });
+            } else {
+                // If no data, display a message
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="5" style="text-align: center;">No products found</td>
+                `;
+                table.appendChild(row);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching products:', error);
+        });
+        }
 
-
+    function fetchCategories() {
+        // Fetch categories to populate the category dropdown
+        const categorySelect = document.getElementById('category');
+        categorySelect.innerHTML = ''; // Clear existing options
+        // Create a default "Select Category" option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select Category';
+        categorySelect.appendChild(defaultOption);
+        fetch('/categories')
+            .then(response => response.json())
+            .then(categories => {
+                const categorySelect = document.getElementById('category');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.category_id;
+                    option.textContent = category.category__name;
+                    categorySelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching categories:', error);
+            });
+    }
 
 </script>
-
-</body>
-</html>
+{% endblock %}

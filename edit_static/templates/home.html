@@ -1,73 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 {% load static %}
-<head>
-    <title>Stock Management</title>
-    <link href="{% static 'assets/images/logo.png' %}" rel="icon" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
-    <style>
-body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
-body {font-size:16px;}
-.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
-.w3-half img:hover{opacity:1}
-
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
-}
-
-    </style>
-</head>
-<body>
-
-<!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-red w3-collapse w3-top w3-large w3-padding" id="mySidebar"
-     style="z-index:3;width:300px;font-weight:bold;"><br>
-    <a class="w3-button w3-hide-large w3-display-topleft" href="javascript:void(0)" onclick="w3_close()"
-       style="width:100%;font-size:22px">Close Menu</a>
-    <div class="w3-container">
-        <h3 class="w3-padding-64"><b>Stock<br>Management</b></h3>
-    </div>
-    <div class="w3-bar-block">
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'home-view' %}" onclick="w3_close()">Home</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="#showcase" onclick="w3_close()">Recent Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'sales-view' %}" onclick="w3_close()">All Sales</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'stock-view' %}" onclick="w3_close()">In-Stock</a>
-        <a class="w3-bar-item w3-button w3-hover-white" href="{% url 'billing-view' %}" onclick="w3_close()">Billing</a>
-    </div>
-</nav>
-
-<!-- Top menu on small screens -->
-<header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
-    <a class="w3-button w3-red w3-margin-right" href="javascript:void(0)" onclick="w3_open()">☰</a>
-    <span>Company Name</span>
-</header>
-
-<!-- Overlay effect when opening sidebar on small screens -->
-<div class="w3-overlay w3-hide-large" id="myOverlay" onclick="w3_close()" style="cursor:pointer"
-     title="close side menu"></div>
-
-<!-- !PAGE CONTENT! -->
+{% block content %}
 <div class="w3-main" style="margin-left:340px;margin-right:40px">
 
     <!-- Header -->
     <div class="w3-container" id="showcase" style="margin-top:80px">
-        <h1 class="w3-jumbo"><b>Today Sails</b></h1>
-        <h1 class="w3-xxxlarge w3-text-red"><b>Today's recent 10 Sails</b></h1>
+        <h1 class="w3-jumbo"><b>Today Sales</b></h1>
+        <h1 class="w3-xxxlarge w3-text-red"><b>Today's recent 10 Sales</b></h1>
         <hr class="w3-round" style="width:50px;border:5px solid red">
     </div>
 
@@ -75,7 +14,7 @@ tr:nth-child(even) {
         <tr>
             <th>Product</th>
             <th>Category</th>
-            <th>Brand</th>
+            <th>Supplier</th>
             <th>Price</th>
             <th>Quantity</th>
             <th>Date/Time</th>
@@ -84,8 +23,8 @@ tr:nth-child(even) {
         <tr>
             <td>{{ sale.product }}</td>
             <td>{{ sale.category }}</td>
-            <td>{{ sale.brand }}</td>
-            <td>{{ sale.price }}</td>
+            <td>{{ sale.supplier }}</td>
+            <td>{{ sale.total_price }}</td>
             <td>{{ sale.quantity }}</td>
             <td>{{ sale.date }}</td>
         </tr>
@@ -104,20 +43,17 @@ tr:nth-child(even) {
     <!-- Services -->
     <div class="w3-container" id="services" style="margin-top:75px">
         <h1 class="w3-xxxlarge w3-text-red"><b>This Month Sales</b></h1>
-        {% block content %}
-
         <div id="container_" style="width:50%;">
             <canvas data-url="{% url 'graph-view' %}" id="pie-chart"></canvas>
         </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
         <script src="{% static 'assets/js/jscript.js' %}"></script>
-        {% endblock %}
     </div>
 
     <!-- Packages / Pricing Tables -->
     <div class="w3-container" id="packages" style="margin-top:75px">
-        <h1 class="w3-xxxlarge w3-text-red"><b>Least & Most 10 Selling Products</b></h1>
+        <h1 class="w3-xxxlarge w3-text-red"><b>10 Least/Most Selling Products</b></h1>
         <hr class="w3-round" style="width:50px;border:5px solid red">
         <p>Below is the list of 10 Most(Pro) & Least selling product.</p>
     </div>
@@ -127,7 +63,8 @@ tr:nth-child(even) {
             <ul class="w3-ul w3-light-grey w3-center">
                 <li class="w3-dark-grey w3-xlarge w3-padding-32">Least</li>
                 {% for sale in least_sales %}
-                <li class="w3-padding-16">{{ sale.quantity }} {{ sale.name }} of {{ sale.brand }} sold till date</li>
+                <li class="w3-padding-16">{{ sale.product__name }} by {{ sale.product__supplier__name }},
+                    total {{ sale.total }} Unit sold</li>
                 {% endfor %}
             </ul>
         </div>
@@ -136,46 +73,11 @@ tr:nth-child(even) {
             <ul class="w3-ul w3-light-grey w3-center">
                 <li class="w3-red w3-xlarge w3-padding-32">Pro</li>
                 {% for sale in most_sales %}
-                <li class="w3-padding-16">{{ sale.quantity }} {{ sale.name }} of {{ sale.brand }} sold till date</li>
+                <li class="w3-padding-16">{{ sale.product__name }} by {{ sale.product__supplier__name }},
+                    total {{ sale.total }} Unit sold</li>
                 {% endfor %}
             </ul>
         </div>
     </div>
-
-    <!-- End page content -->
 </div>
-
-<!-- W3.CSS Container -->
-<div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px"><p class="w3-right">
-    Powered by <a class="w3-hover-opacity" href="https://www.apurvchaudhary.com" target="_blank" title="W3.CSS">Apurv
-    Chaudhary</a></p></div>
-
-<script>
-// Script to open and close sidebar
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("myOverlay").style.display = "block";
-}
-
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("myOverlay").style.display = "none";
-}
-
-// Modal Image Gallery
-function onClick(element) {
-  document.getElementById("img01").src = element.src;
-  document.getElementById("modal01").style.display = "block";
-  var captionText = document.getElementById("caption");
-  captionText.innerHTML = element.alt;
-}
-
-
-
-
-
-
-</script>
-
-</body>
-</html>
+{% endblock %}

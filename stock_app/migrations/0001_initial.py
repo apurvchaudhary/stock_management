@@ -62,9 +62,7 @@ class Migration(migrations.Migration):
                         max_length=10,
                         unique=True,
                         validators=[
-                            django.core.validators.RegexValidator(
-                                "^[0-9]{10}$", "Enter a valid 10-digit phone number."
-                            )
+                            django.core.validators.RegexValidator("^[0-9]{10}$", "Enter a valid 10-digit phone number.")
                         ],
                     ),
                 ),
@@ -133,9 +131,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "quantity",
-                    models.PositiveIntegerField(
-                        validators=[django.core.validators.MinValueValidator(1)]
-                    ),
+                    models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)]),
                 ),
                 (
                     "total_price",
@@ -177,15 +173,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "quantity",
-                    models.PositiveIntegerField(
-                        validators=[django.core.validators.MinValueValidator(1)]
-                    ),
+                    models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)]),
                 ),
                 (
                     "movement_type",
-                    models.CharField(
-                        choices=[("In", "In"), ("Out", "Out")], max_length=3
-                    ),
+                    models.CharField(choices=[("In", "In"), ("Out", "Out")], max_length=3),
                 ),
                 ("movement_date", models.DateTimeField(auto_now_add=True)),
                 ("notes", models.TextField(blank=True, null=True)),
